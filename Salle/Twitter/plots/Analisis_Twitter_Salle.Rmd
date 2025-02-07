@@ -1,0 +1,174 @@
+---
+title: "Análisis cuenta oficial Gustavo Salle - Twitter/X"
+author: "Elina Gómez"
+date: "2025-02-03"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Contexto
+
+```{r include=FALSE}
+library(lubridate)
+library(dplyr)
+library(quanteda)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(plotly)
+library(htmlwidgets)
+
+base=openxlsx::read.xlsx("C:/Users/elina/OneDrive/Documentos/Busqueda/Salle/Twitter/base_final.xlsx")
+base <- base %>%
+  mutate(
+    Fecha = ymd_hms(Time),
+    Anio = year(Fecha),
+    Mes = month(Fecha),
+    Dia = day(Fecha),
+    Fecha_corta = as.Date(Fecha)
+  )
+
+
+```
+
+<br>
+
+El trabajo se centra en un análisis retrospectivo de los posteos de la cuenta oficial de Gustavo Salle (@sallelorier) en la red X (ex-Twitter), en el período 2015 - 2025. En total se contablizan 46633 posteos en el período de diez años, incluyendo posteos originales (21659) y comentarios a otros posteos (24974). En la siguiente tabla se visualiza el total de posteos por año, considerando ambos tipos en conjunto. 
+
+<br>
+
+```{r pressure, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(kableExtra)
+
+base %>%
+  group_by(Anio)%>%
+  summarize(N=n())%>%
+#  arrange(-N)%>%
+   kbl(align = 'c') %>%
+  kable_styling(bootstrap_options = "striped", full_width = TRUE, position = "center") %>%
+  scroll_box(width = "80%", height = "500px") 
+```
+
+# Evolución 
+
+<br>
+En el siguiente gráfico se visualiza su evolución desagregada según tipo de posteo (original o comentario), observando diferentes momentos en la forma de interacción con la red. [^1] 
+<br>
+
+[^1]: Se considera la evolución hasta el año cerrado 2024. 
+
+
+<iframe src="grafico_tipo.html" width="100%" height="500px" style="border:none;"></iframe>
+
+
+
+# Temas
+<br>
+Con el objetivo de analizar el contenido de los posteos, se realizaron diccionarios temáticos con términos asociados a algunas categorías o temas definidos según análisis de discursos del político en medios de prensa. Se distinguieron cuatro categorías asociadas a temas recurrentes en su discursividad pública: 1) Orden global y política, 2) Ambiente, 3) Pandemia y 4) Sistema judicial. La agrupación en diccionarios permite analizar su evolución en el tiempo, énfasis, términos más relevante entre las cetegorías, entre otros. 
+
+En primer lugar, se visualiza la evolución de la cantidad de posteos según cada categoría. Para ello, se define que un posteo corresponde a una categoría determinada cuando menciona al menos uno de los términos definidos en cada caso. 
+<br>
+
+
+<iframe src="evo_cat.html" width="100%" height="500px" style="border:none;"></iframe>
+
+
+<br>
+
+Otra forma de ver dicha evolución en términos de intensidad, como se presenta a continuación, es contabilizar la cantidad de términos mencionados para cada categoría y visualizar su evolución en el tiempo. 
+
+<br>
+
+<iframe src="evo_terminos.html" width="100%" height="500px" style="border:none;"></iframe>
+
+<br>
+
+Por último se indaga sobre el peso de cada término para cada una de las cuatro categorías que integran el análisis. Se toman las diez palabras principales para cada tema.  
+
+
+
+<iframe src="heatmap_terminos.html" width="100%" height="700px" style="border:none;"></iframe>
+
+<br>
+
+# Temática parlamentaria
+
+<br>
+Se realizó un análisis específico sobre el abordaje de la temática parlamentaria en los posteos emitidos por Gustavo Salle. 
+<br>
+
+<iframe src="evo_parlamento.html" width="100%" height="500px" style="border:none;"></iframe>
+
+<br>
+También, al igual que en apartados anteriores y con el objetivo de dar cuenta del contenido e intersidad de esos mensajes, se presenta la evolución en la cantidad de términos vinculados con la dinámica parlamentarias que son mencionados en los posteos. 
+<br>
+
+<iframe src="evo_terminos_parlamento.html" width="100%" height="500px" style="border:none;"></iframe>
+
+
+<br>
+Finalmente, se presenta un mapa de calor con los diez términos vinculados al parlamento más mencionados y su intensidad. 
+
+<br>
+
+
+<iframe src="heatmap_terminos_parlamento.html" width="100%" height="700px" style="border:none;"></iframe>
+
+
+
+
+
+
+# Interacción
+
+<br>
+Entre los 24974 posteos que representan comentarios a otros posteos, se pueden distinguir cuales son las cuentas a las que reacciona la cuenta original. En la tabla siguiente se contabilizan las menciones a las 20 cuentas con más interacciones (comentarios) en todo el período analizado.    
+
+
+<br>
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(stringr)
+library(kableExtra)
+
+respuestas <- base %>% filter(comentario==1)
+respuestas <- respuestas %>%
+  mutate(menciones = str_extract_all(Text, "@\\w+")) %>% 
+  unnest(menciones) %>%  
+  mutate(menciones = str_remove(menciones, "@"))  
+respuestas %>%
+  count(menciones, sort = TRUE) %>%
+  top_n(20, n)%>%
+  arrange(-n)%>%
+  dplyr::rename(Cuenta=menciones,Menciones=n) %>%
+   kbl(align = 'c') %>%
+  kable_styling(bootstrap_options = "striped", full_width = TRUE, position = "center") %>%
+  scroll_box(width = "80%", height = "500px") 
+```
+
+
+<br>
+
+Si vemos la evolución en el tiempo es posible identificar la intensidad de dicha interacción para las 10 cuentas principales. 
+
+<br>
+
+<iframe src="evo_interacciones.html" width="100%" height="500px" style="border:none;"></iframe>
+
+
+
+
+
+
+
+
+
+
