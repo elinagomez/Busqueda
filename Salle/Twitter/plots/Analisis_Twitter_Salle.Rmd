@@ -71,7 +71,7 @@ En el siguiente gráfico se visualiza su evolución desagregada según tipo de p
 
 # Temas
 <br>
-Con el objetivo de analizar el contenido de los posteos, se realizaron diccionarios temáticos con términos asociados a algunas categorías o temas definidos según análisis de discursos del político en medios de prensa. Se distinguieron cuatro categorías asociadas a temas recurrentes en su discursividad pública: 1) Orden global y política, 2) Ambiente, 3) Pandemia y 4) Sistema judicial. La agrupación en diccionarios permite analizar su evolución en el tiempo, énfasis, términos más relevante entre las cetegorías, entre otros. 
+Con el objetivo de analizar el contenido de los posteos, se realizaron diccionarios temáticos con términos asociados a algunas categorías o temas definidos según análisis de discursos del político en medios de prensa. Se distinguieron categorías asociadas a temas recurrentes en su discursividad pública: 1) Orden global y política, 2) Ambiente, 3) Pandemia, 4) Sistema judicial, 5) Género y 6) Otros. La agrupación en diccionarios permite analizar su evolución en el tiempo, énfasis, términos más relevante entre las cetegorías, entre otros. 
 
 En primer lugar, se visualiza la evolución de la cantidad de posteos según cada categoría. Para ello, se define que un posteo corresponde a una categoría determinada cuando menciona al menos uno de los términos definidos en cada caso. 
 <br>
@@ -166,9 +166,13 @@ Si vemos la evolución en el tiempo es posible identificar la intensidad de dich
 
 
 
+# Análisis de sentimiento
 
 
+Finalmente, si analizamos el sentimiento de los posteos en el tiempo utilizando modelos pre-entrenados para tal fin (librería _pysentimiento_), se observa que más de la mitad son negativos (54,3%). La evolución permite visualizar los cambios en el tono, siendo diferente en el último año electoral (2024) con respecto a precedentes. 
 
+
+<iframe src="evo_sent.html" width="100%" height="500px" style="border:none;"></iframe>
 
 
 

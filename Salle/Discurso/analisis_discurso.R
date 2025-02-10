@@ -12,23 +12,30 @@ library(htmlwidgets)
 library(lubridate)
 
 
-base=openxlsx::read.xlsx("Salle/Discurso/discursos_completo_metadata.xlsx")
+base=openxlsx::read.xlsx("Salle/Discurso/discursos_completo_metadata_fecha.xlsx")
 
 ##Evolución de conteo de términos según categorías por año ------
 
 
+# Definir las categorías y sus palabras clave
 diccionario <- dictionary(list(
-  "Orden global y política" = c("2030", "agenda", "masón*", "masonería", "judío*", 
-                                "corporatocracia", "casta", "davos", "israel*", 
-                                "kissinger", "narco*", "plutocracia", "plutócrata", 
-                                "plutocr**", "clepto*", "george soros", "agenda soros", 
-                                "bill gates", "corporación*"),
-  "Ambiente" = c("agua", "ambiente", "clima", "climático*", "upm", 
+  "Orden global y política" = c("2030", "agenda", "masón", "masonería", "judío", 
+                                "corporatocracia", "casta", "davos", "israel", 
+                                "kissinger", "narco", "plutocracia", "plutócrata", 
+                                "plutocr", "clepto", "george soros", "agenda soros", 
+                                "bill gates", "corporación"),
+  "Ambiente" = c("agua", "ambiente", "clima", "climático", "upm", 
                  "hidrógeno verde", "forestal"),
-  "Pandemia" = c("pandemia", "covid", "vacun*", "plandemia"),
-  "Sistema judicial" = c("abogacía", "abogado*", "constitución*", "constitucional*", 
-                         "corrupción", "corrupto*", "coimero*", "coima*", "fiscal*", 
-                         "justicia")
+  "Pandemia" = c("pandemia", "covid", "vacuna", "plandemia"),
+  "Sistema judicial" = c("abogacía", "abogado", "constitución", "constitucional", 
+                         "corrupción", "corrupto", "coimero", "coima", "fiscal", 
+                         "justicia"),
+  "Género" = c("ideología de género", "homosexual*","feminis*"),
+  "Otros" = c("comunismo",
+              "capitalis*",
+              "libertad",
+              "vazquez","vázquez","tabaré",
+              "medios de comunicación" )
 ))
 
 
@@ -70,14 +77,15 @@ conteos_tidy <- conteos_tidy %>%
 
 #openxlsx::write.xlsx(conteos_tidy,"Salle/Discurso/Intermedias/conteos_terminos_discursos.xlsx")
 
-
-# Definir colores para cada categoría
 colores_categoria <- c(
   "Orden global y política" = "#1f78b4",
   "Ambiente" = "#33a02c",
   "Pandemia" = "#e31a1c",
-  "Sistema judicial" = "#ff7f00"
+  "Sistema judicial" = "#ff7f00",
+  "Género" ="#ead1dc",
+  "Otros" = "#f3f3f3"
 )
+
 
 # Crear el gráfico con ggplot
 grafico_terminos <- ggplot(conteos_tidy, aes(x = Anio, y = round(conteo_por_1000,1), color = categoria, group = categoria,
@@ -361,111 +369,186 @@ plot_justicia <- ggplot(data_dfm_top10_justicia, aes(x = Anio, y = Termino, fill
 plot_justicia = ggplotly(plot_justicia) 
 
 
-fig <- subplot(plot_orden, plot_ambiente,
-              plot_pandemia, plot_justicia, nrows = 2, titleY = FALSE, titleX = FALSE, margin = 0.1 )
+##Género
 
-fig <- fig %>% layout(
-  title = 'Frecuencia relativa de términos (cada 1000) más mencionados en discursos por categoría y año',
-  margin = list(t = 100),font = list(size = 11, face = "bold") 
+diccionario_genero <- dictionary(list(
+  "Género" = c("ideología de género", "homosexual*","feminis*","género")))
+
+
+
+corpus_tweets <- corpus(base, text_field = "contenido")
+tokens_tweets <- tokens(corpus_tweets, remove_punct = TRUE)
+tokens_tweets <- tokens_tolower(tokens_tweets)
+
+dfm_tweets <- dfm(tokens_tweets)
+dfm_tweets <- dfm_group(dfm_tweets, groups = docvars(dfm_tweets, "año"))
+
+terminos_diccionario <- unlist(diccionario_genero)
+dfm_filtrado <- dfm_select(dfm_tweets, pattern = terminos_diccionario)
+
+data_dfm <- convert(dfm_filtrado, to = "data.frame") %>%
+  pivot_longer(cols = -doc_id, names_to = "Termino", values_to = "Frecuencia") %>%
+  filter(Frecuencia != 0) %>%
+  rename(Anio = doc_id)
+
+dfm_tokens_anual <- dfm_group(dfm_tweets, groups = docvars(dfm_tweets, "año"))
+total_palabras_anual <- rowSums(dfm_tokens_anual)
+
+total_palabras_df <- data.frame(Anio = names(total_palabras_anual),
+                                total_palabras = total_palabras_anual)
+
+data_dfm <- data_dfm %>%
+  left_join(total_palabras_df, by = "Anio") %>%
+  mutate(Frecuencia_normalizada = (Frecuencia / total_palabras) * 1000)
+
+top_10_terminos <- data_dfm %>%
+  group_by(Termino) %>%
+  summarise(Promedio_Frecuencia = mean(Frecuencia_normalizada, na.rm = TRUE)) %>%
+  arrange(desc(Promedio_Frecuencia)) %>%
+  slice_head(n = 10)
+
+data_dfm_top10_genero <- data_dfm %>%
+  filter(Termino %in% top_10_terminos$Termino) %>%
+  filter(Anio != 2025) %>%
+  mutate(Termino = factor(Termino, levels = rev(top_10_terminos$Termino))) %>%
+  mutate(Categoria = "Género")%>%
+  mutate(Frecuencia_normalizada = round(Frecuencia_normalizada, 1))
+
+plot_genero <- ggplot(data_dfm_top10_genero, aes(x = Anio, y = Termino, fill = Frecuencia_normalizada)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "#ead1dc", name = "Frecuencia") +
+  labs(title = "Frecuencia de términos más mencionados por año - Género", x = "Año", y = "Términos") +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(size = 12, face = "bold"),legend.position = "none")
+
+
+plot_genero = ggplotly(plot_genero) 
+
+
+
+
+##Otros
+
+
+diccionario_otros <- dictionary(list(
+  "Género" = c("comunismo",
+               "capitalis*",
+               "libertad",
+               "vazquez","vázquez","tabaré",
+               "medios de comunicación" )))
+
+
+corpus_tweets <- corpus(base, text_field = "contenido")
+tokens_tweets <- tokens(corpus_tweets, remove_punct = TRUE)
+tokens_tweets <- tokens_tolower(tokens_tweets)
+
+dfm_tweets <- dfm(tokens_tweets)
+dfm_tweets <- dfm_group(dfm_tweets, groups = docvars(dfm_tweets, "año"))
+
+terminos_diccionario <- unlist(diccionario_otros)
+dfm_filtrado <- dfm_select(dfm_tweets, pattern = terminos_diccionario)
+
+data_dfm <- convert(dfm_filtrado, to = "data.frame") %>%
+  pivot_longer(cols = -doc_id, names_to = "Termino", values_to = "Frecuencia") %>%
+  filter(Frecuencia != 0) %>%
+  rename(Anio = doc_id)
+
+dfm_tokens_anual <- dfm_group(dfm_tweets, groups = docvars(dfm_tweets, "año"))
+total_palabras_anual <- rowSums(dfm_tokens_anual)
+
+total_palabras_df <- data.frame(Anio = names(total_palabras_anual),
+                                total_palabras = total_palabras_anual)
+
+data_dfm <- data_dfm %>%
+  left_join(total_palabras_df, by = "Anio") %>%
+  mutate(Frecuencia_normalizada = (Frecuencia / total_palabras) * 1000)
+
+top_10_terminos <- data_dfm %>%
+  group_by(Termino) %>%
+  summarise(Promedio_Frecuencia = mean(Frecuencia_normalizada, na.rm = TRUE)) %>%
+  arrange(desc(Promedio_Frecuencia)) %>%
+  slice_head(n = 10)
+
+data_dfm_top10_otros <- data_dfm %>%
+  filter(Termino %in% top_10_terminos$Termino) %>%
+  filter(Anio != 2025) %>%
+  mutate(Termino = factor(Termino, levels = rev(top_10_terminos$Termino))) %>%
+  mutate(Categoria = "Otros")%>%
+  mutate(Frecuencia_normalizada = round(Frecuencia_normalizada, 1))
+
+plot_otros <- ggplot(data_dfm_top10_otros, aes(x = Anio, y = Termino, fill = Frecuencia_normalizada)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "#f3f3f3", name = "Frecuencia") +
+  labs(title = "Frecuencia de términos más mencionados por año - Otros", x = "Año", y = "Términos") +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(size = 12, face = "bold"),legend.position = "none")
+
+
+plot_otros = ggplotly(plot_otros) 
+
+##uno todo
+
+
+library(plotly)
+
+fig <- subplot(plot_orden, plot_ambiente, 
+               plot_pandemia, plot_justicia, 
+               plot_genero, plot_otros,
+               nrows = 3, titleY = FALSE, titleX = FALSE, margin = 0.1)
+
+# Anotaciones para los títulos de cada gráfico en la grilla 3x2
+annotations = list( 
+  list( x = 0.25, y = 1.0, text = "Orden global y política", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),  
+  list( x = 0.75, y = 1.0, text = "Ambiente", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),  
+  list( x = 0.25, y = 0.65, text = "Pandemia", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),
+  list( x = 0.75, y = 0.65, text = "Sistema Judicial", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),
+  list( x = 0.25, y = 0.3, text = "Género", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),
+  list( x = 0.75, y = 0.3, text = "Otros", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12))
 )
 
-
-annotations = list( 
-  
-  list( 
-    
-    x = 0.2,  
-    
-    y = 1.0,  
-    
-    text = "Orden global y política",  
-    
-    xref = "paper",  
-    
-    yref = "paper",  
-    
-    xanchor = "center",  
-    
-    yanchor = "bottom",  
-    
-    showarrow = FALSE 
-    
-  ),  
-  
-  list( 
-    
-    x = 0.8,  
-    
-    y = 1,  
-    
-    text = "Ambiente",  
-    
-    xref = "paper",  
-    
-    yref = "paper",  
-    
-    xanchor = "center",  
-    
-    yanchor = "bottom",  
-    
-    showarrow = FALSE 
-    
-  ),  
-  
-  list( 
-    
-    x = 0.2,  
-    
-    y = 0.4,  
-    
-    text = "Pandemia",  
-    
-    xref = "paper",  
-    
-    yref = "paper",  
-    
-    xanchor = "center",  
-    
-    yanchor = "bottom",  
-    
-    showarrow = FALSE 
-    
-  ),
-  
-  list( 
-    
-    x = 0.8,  
-    
-    y = 0.4,  
-    
-    text = "Sistema Judicial",  
-    
-    xref = "paper",  
-    
-    yref = "paper",  
-    
-    xanchor = "center",  
-    
-    yanchor = "bottom",  
-    
-    showarrow = FALSE 
-    
-  ))
-
-
-fig <- fig %>%layout(annotations = annotations) 
+# Aplicar layout en una sola llamada para evitar sobreescribir configuraciones
+fig <- fig %>% layout(
+  title = 'Frecuencia de términos más mencionados por categoría y año',
+  margin = list(t = 100),
+  annotations = annotations,
+  xaxis = list(tickfont = list(size = 10)),  
+  xaxis2 = list(tickfont = list(size = 10)),  
+  xaxis3 = list(tickfont = list(size = 10)),  
+  xaxis4 = list(tickfont = list(size = 10)),  
+  xaxis5 = list(tickfont = list(size = 10)),  
+  xaxis6 = list(tickfont = list(size = 10)),  
+  yaxis = list(tickfont = list(size = 10)),  
+  yaxis2 = list(tickfont = list(size = 10)),  
+  yaxis3 = list(tickfont = list(size = 10)),  
+  yaxis4 = list(tickfont = list(size = 10)),  
+  yaxis5 = list(tickfont = list(size = 10)),  
+  yaxis6 = list(tickfont = list(size = 10))  
+)
 
 fig
 
-#saveWidget(fig, "Salle/Discurso/plots/heatmap_terminos_discursos.html", selfcontained = TRUE)
+saveWidget(fig, "Salle/Discurso/plots/heatmap_terminos_discursos.html", selfcontained = TRUE)
+
 
 
 data_combined <- bind_rows(
-  mutate(data_dfm_top10_orden),
-  mutate(data_dfm_top10_pandemia),
-  mutate(data_dfm_top10_ambiente),
-  mutate(data_dfm_top10_justicia)
+  data_dfm_top10_orden,
+  data_dfm_top10_pandemia,
+ data_dfm_top10_ambiente,
+  data_dfm_top10_genero,
+  data_dfm_top10_otros
 )
 
-#openxlsx::write.xlsx(data_combined,"Salle/Discurso/Intermedias/data_heatmap_discursos.xlsx")
+
+openxlsx::write.xlsx(data_combined,"Salle/Discurso/Intermedias/data_heatmap_discursos.xlsx")
 

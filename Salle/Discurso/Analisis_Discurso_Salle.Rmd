@@ -1,7 +1,7 @@
 ---
 title: "Análisis declaraciones Gustavo Salle"
 author: "Elina Gómez"
-date: "2025-02-07"
+date: "2025-02-10"
 output: 
   html_document:
     toc: true
@@ -24,13 +24,13 @@ library(tidyr)
 library(plotly)
 library(htmlwidgets)
 
-base=openxlsx::read.xlsx("C:/Users/elina/OneDrive/Documentos/Busqueda/Salle/Discurso/discursos_completo_metadata.xlsx")
+base=openxlsx::read.xlsx("C:/Users/elina/OneDrive/Documentos/Busqueda/Salle/Discurso/discursos_completo_metadata_fecha.xlsx")
 
 ```
 
 <br>
 
-En este documentos se analiza un corpus de datos textuales en base a 146 declaraciones o entrevistas a Gustavo Salle en el período entre 2015 y 2024. A continuación se observa la distribución por año.  
+En este documentos se analiza un corpus de datos textuales en base a 167 declaraciones o entrevistas a Gustavo Salle en el período entre 2015 y 2024. A continuación se observa la distribución por año.  
 
 <br>
 
@@ -70,7 +70,7 @@ base %>%
 
 # Temas
 <br>
-Con el objetivo de analizar el contenido de los posteos, se realizaron diccionarios temáticos con términos asociados a algunas categorías o temas definidos según análisis de discursos del político en medios de prensa. Se distinguieron cuatro categorías asociadas a temas recurrentes en su discursividad pública: 1) Orden global y política, 2) Ambiente, 3) Pandemia y 4) Sistema judicial. La agrupación en diccionarios permite analizar su evolución en el tiempo, énfasis, términos más relevante entre las cetegorías, entre otros. 
+Con el objetivo de analizar el contenido de los posteos, se realizaron diccionarios temáticos con términos asociados a algunas categorías o temas definidos según análisis de discursos del político en medios de prensa. Se distinguieron categorías asociadas a temas recurrentes en su discursividad pública: 1) Orden global y política, 2) Ambiente, 3) Pandemia, 4) Sistema judicial, 5) Género y 6) Otros. La agrupación en diccionarios permite analizar su evolución en el tiempo, énfasis, términos más relevante entre las cetegorías, entre otros. 
 
 La evolución se analiza relativizando las frecuencias absolutas ya que existe desbalance en la cantidad de casos para cada año, por lo que se presenta la cantidad de términos mencionadas para cada categoría en base 1000 términos. Esta normalización hace comparable la serie de tiempo.  
 
@@ -83,8 +83,8 @@ La evolución se analiza relativizando las frecuencias absolutas ya que existe d
 Por último se indaga sobre el peso de cada término para cada una de las cuatro categorías que integran el análisis. Se toman las diez palabras principales para cada tema, también considerando la métrica relativa.  
 
 
+<iframe src="plots/heatmap_terminos_discursos.html" width="100%" height="1200px" style="border:none;"></iframe>
 
-<iframe src="plots/heatmap_terminos_discursos.html" width="100%" height="700px" style="border:none;"></iframe>
 
 <br>
 

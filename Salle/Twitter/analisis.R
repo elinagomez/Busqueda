@@ -478,23 +478,6 @@ plot_justicia = ggplot(data_dfm_top10_justicia, aes(x = Anio, y = Termino, fill 
 plot_justicia = ggplotly(plot_justicia) 
 
 
-
-# grid_plot <- subplot(
-#   plot_orden, plot_ambiente,
-#   plot_pandemia, plot_justicia,
-#   nrows = 2, margin = 0.05,
-#   shareX = FALSE, titleX = FALSE
-# ) %>%
-#   layout(
-#     title = list(
-#       text = "Frecuencia de términos más mencionados por categoría y año",  # Cambia el título aquí
-#       x = 0.5,  # Centrar el título
-#       xanchor = "center",
-#       yanchor = "top"
-#     )
-#   )
-
-
 ##Género
 
 
