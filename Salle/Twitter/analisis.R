@@ -88,8 +88,14 @@ diccionario <- dictionary(list(
   "Pandemia" = c("pandemia", "covid", "vacuna", "plandemia"),
   "Sistema judicial" = c("abogacía", "abogado", "constitución", "constitucional", 
                          "corrupción", "corrupto", "coimero", "coima", "fiscal", 
-                         "justicia")
-))
+                         "justicia"),
+  "Género" = c("ideología de género", "homosexual*","feminis*"),
+  "Otros" = c("comunismo",
+              "capitalis*",
+              "libertad",
+              "vazquez","vázquez","tabaré",
+              "medios de comunicación" )
+  ))
 
 # Crear corpus y tokens
 corpus_tweets <- corpus(base, text_field = "Text")
@@ -128,7 +134,7 @@ conteos_categorias <- dfm_categorias %>%
   summarise(conteo_posteos = n(), .groups = "drop")%>%
   filter(Anio!=2025)
 
-#openxlsx::write.xlsx(conteos_categorias,"Salle/Twitter/Intermedias/conteos_categorias.xlsx")
+openxlsx::write.xlsx(conteos_categorias,"Salle/Twitter/Intermedias/conteos_categorias.xlsx")
 
 
 # Definir una paleta de colores personalizada para las categorías
@@ -136,7 +142,9 @@ colores_categoria <- c(
   "Orden global y política" = "#1f78b4",
   "Ambiente" = "#33a02c",
   "Pandemia" = "#e31a1c",
-  "Sistema judicial" = "#ff7f00"
+  "Sistema judicial" = "#ff7f00",
+  "Género" ="#ead1dc",
+  "Otros" = "#f3f3f3"
 )
 
 # Crear el gráfico con ggplot
@@ -174,24 +182,6 @@ saveWidget(grafico_interactivo, "Salle/Twitter/plots/evo_cat.html", selfcontaine
 ##Evolución de conteo de términos según categorías por año ------
 
 
-diccionario <- dictionary(list(
-  "Orden global y política" = c("2030", "agenda", "masón*", "masonería", "judío*", 
-                                "corporatocracia", "casta", "davos", "israel*", 
-                                "kissinger", "narco*", "plutocracia", "plutócrata", 
-                                "plutocr**", "clepto*", "george soros", "agenda soros", 
-                                "bill gates", "corporación*"),
-  "Ambiente" = c("agua", "ambiente", "clima", "climático*", "upm", 
-                 "hidrógeno verde", "forestal"),
-  "Pandemia" = c("pandemia", "covid", "vacun*", "plandemia"),
-  "Sistema judicial" = c("abogacía", "abogado*", "constitución*", "constitucional*", 
-                         "corrupción", "corrupto*", "coimero*", "coima*", "fiscal*", 
-                         "justicia")
-))
-
-
-
-
-
 corpus_tweets <- corpus(base, text_field = "Text")
 tokens_tweets <- tokens(corpus_tweets, remove_punct = TRUE)
 tokens_tweets <- tokens_tolower(tokens_tweets)
@@ -212,16 +202,8 @@ conteos_tidy <- conteos_tidy %>%
   filter(Anio != 2025)  # Excluir 2025 si es necesario
 
 
-#openxlsx::write.xlsx(conteos_tidy,"Salle/Twitter/Intermedias/conteos_terminos.xlsx")
+openxlsx::write.xlsx(conteos_tidy,"Salle/Twitter/Intermedias/conteos_terminos.xlsx")
 
-
-# Definir colores para cada categoría
-colores_categoria <- c(
-  "Orden global y política" = "#1f78b4",
-  "Ambiente" = "#33a02c",
-  "Pandemia" = "#e31a1c",
-  "Sistema judicial" = "#ff7f00"
-)
 
 # Crear el gráfico con ggplot
 grafico_terminos <- ggplot(conteos_tidy, aes(x = Anio, y = conteo, color = categoria, group = categoria,
@@ -513,106 +495,178 @@ plot_justicia = ggplotly(plot_justicia)
 #   )
 
 
-fig <- subplot(plot_orden, plot_ambiente,
-              plot_pandemia, plot_justicia, nrows = 2, titleY = FALSE, titleX = FALSE, margin = 0.1 )
+##Género
 
-#fig <- fig %>%layout(title = 'Frecuencia de términos más mencionados por categoría y año' )
 
-fig <- fig %>% layout(
-  title = 'Frecuencia de términos más mencionados por categoría y año',
-  margin = list(t = 100),  # Aumenta el margen superior (en píxeles) para dejar espacio entre el título y los gráficos
-  annotations = annotations
+diccionario_genero <- dictionary(list(
+  "Género" = c("ideología de género", "homosexual*","feminis*","género")))
+
+
+
+corpus_tweets <- corpus(base, text_field = "Text")
+tokens_tweets <- tokens(corpus_tweets, remove_punct = TRUE)
+tokens_tweets <- tokens_tolower(tokens_tweets)
+dfm_tweets <- dfm(tokens_tweets)
+dfm_tweets <- dfm_group(dfm_tweets, groups = docvars(dfm_tweets, "Anio"))
+
+
+terminos_diccionario <- unlist(diccionario_genero)
+dfm_filtrado <- dfm_select(dfm_tweets, pattern = terminos_diccionario)
+
+data_dfm <- convert(dfm_filtrado, to = "data.frame") %>%
+  pivot_longer(cols = -doc_id, names_to = "Termino", values_to = "Frecuencia") %>%
+  filter(Frecuencia != 0)
+
+##tengo todos los términos que dice 
+
+##me quedo con los 10 que más se dicen
+
+# Calcular la frecuencia promedio por término a lo largo de todos los años
+promedio_frecuencia <- data_dfm %>%
+  group_by(Termino) %>%
+  summarise(Promedio_Frecuencia = mean(Frecuencia)) %>%
+  arrange(desc(Promedio_Frecuencia))
+
+# Seleccionar los 10 términos más mencionados en promedio
+top_10_terminos <- head(promedio_frecuencia, 10)
+
+
+data_dfm_top10_genero <- data_dfm %>%
+  filter(Termino%in%top_10_terminos$Termino)%>%
+  rename(Anio = doc_id) %>%
+  filter(Anio!=2025)%>%
+  mutate(Termino = factor(Termino, levels = rev(top_10_terminos$Termino)))%>%
+  mutate(Categoria = "Género")
+
+
+
+plot_genero = ggplot(data_dfm_top10_genero, aes(x = Anio, y = Termino, fill = Frecuencia)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "#ead1dc", name = "Frecuencia") +
+  labs(title = "Frecuencia de términos más mencionados por año - Género", x = "Año", y = "Términos") +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(size = 12, face = "bold"),legend.position = "none")
+
+
+plot_genero = ggplotly(plot_genero) 
+
+
+
+
+##Otros
+
+
+diccionario_otros <- dictionary(list(
+  "Género" = c("comunismo",
+                 "capitalis*",
+                 "libertad",
+                 "vazquez","vázquez","tabaré",
+                 "medios de comunicación" )))
+
+
+
+corpus_tweets <- corpus(base, text_field = "Text")
+tokens_tweets <- tokens(corpus_tweets, remove_punct = TRUE)
+tokens_tweets <- tokens_tolower(tokens_tweets)
+dfm_tweets <- dfm(tokens_tweets)
+dfm_tweets <- dfm_group(dfm_tweets, groups = docvars(dfm_tweets, "Anio"))
+
+
+terminos_diccionario <- unlist(diccionario_otros)
+dfm_filtrado <- dfm_select(dfm_tweets, pattern = terminos_diccionario)
+
+data_dfm <- convert(dfm_filtrado, to = "data.frame") %>%
+  pivot_longer(cols = -doc_id, names_to = "Termino", values_to = "Frecuencia") %>%
+  filter(Frecuencia != 0)
+
+##tengo todos los términos que dice 
+
+##me quedo con los 10 que más se dicen
+
+# Calcular la frecuencia promedio por término a lo largo de todos los años
+promedio_frecuencia <- data_dfm %>%
+  group_by(Termino) %>%
+  summarise(Promedio_Frecuencia = mean(Frecuencia)) %>%
+  arrange(desc(Promedio_Frecuencia))
+
+# Seleccionar los 10 términos más mencionados en promedio
+top_10_terminos <- head(promedio_frecuencia, 10)
+
+
+data_dfm_top10_otros <- data_dfm %>%
+  filter(Termino%in%top_10_terminos$Termino)%>%
+  rename(Anio = doc_id) %>%
+  filter(Anio!=2025)%>%
+  mutate(Termino = factor(Termino, levels = rev(top_10_terminos$Termino)))%>%
+  mutate(Categoria = "Otros")
+
+
+
+plot_otros = ggplot(data_dfm_top10_otros, aes(x = Anio, y = Termino, fill = Frecuencia)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "#f3f3f3", name = "Frecuencia") +
+  labs(title = "Frecuencia de términos más mencionados por año - Otros", x = "Año", y = "Términos") +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(size = 12, face = "bold"),legend.position = "none")
+
+
+plot_otros = ggplotly(plot_otros) 
+
+
+
+##uno todo
+
+
+
+
+
+library(plotly)
+
+fig <- subplot(plot_orden, plot_ambiente, 
+               plot_pandemia, plot_justicia, 
+               plot_genero, plot_otros,
+               nrows = 3, titleY = FALSE, titleX = FALSE, margin = 0.1)
+
+# Anotaciones para los títulos de cada gráfico en la grilla 3x2
+annotations = list( 
+  list( x = 0.25, y = 1.0, text = "Orden global y política", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),  
+  list( x = 0.75, y = 1.0, text = "Ambiente", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),  
+  list( x = 0.25, y = 0.65, text = "Pandemia", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),
+  list( x = 0.75, y = 0.65, text = "Sistema Judicial", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),
+  list( x = 0.25, y = 0.3, text = "Género", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12)),
+  list( x = 0.75, y = 0.3, text = "Otros", xref = "paper", yref = "paper", 
+        xanchor = "center", yanchor = "bottom", showarrow = FALSE, font = list(size = 12))
 )
 
-# Update title
-
-annotations = list( 
-  
-  list( 
-    
-    x = 0.2,  
-    
-    y = 1.0,  
-    
-    text = "Orden global y política",  
-    
-    xref = "paper",  
-    
-    yref = "paper",  
-    
-    xanchor = "center",  
-    
-    yanchor = "bottom",  
-    
-    showarrow = FALSE 
-    
-  ),  
-  
-  list( 
-    
-    x = 0.8,  
-    
-    y = 1,  
-    
-    text = "Ambiente",  
-    
-    xref = "paper",  
-    
-    yref = "paper",  
-    
-    xanchor = "center",  
-    
-    yanchor = "bottom",  
-    
-    showarrow = FALSE 
-    
-  ),  
-  
-  list( 
-    
-    x = 0.2,  
-    
-    y = 0.4,  
-    
-    text = "Pandemia",  
-    
-    xref = "paper",  
-    
-    yref = "paper",  
-    
-    xanchor = "center",  
-    
-    yanchor = "bottom",  
-    
-    showarrow = FALSE 
-    
-  ),
-  
-  list( 
-    
-    x = 0.8,  
-    
-    y = 0.4,  
-    
-    text = "Sistema Judicial",  
-    
-    xref = "paper",  
-    
-    yref = "paper",  
-    
-    xanchor = "center",  
-    
-    yanchor = "bottom",  
-    
-    showarrow = FALSE 
-    
-  ))
-
-
-fig <- fig %>%layout(annotations = annotations) 
+# Aplicar layout en una sola llamada para evitar sobreescribir configuraciones
+fig <- fig %>% layout(
+  title = 'Frecuencia de términos más mencionados por categoría y año',
+  margin = list(t = 100),
+  annotations = annotations,
+  xaxis = list(tickfont = list(size = 10)),  
+  xaxis2 = list(tickfont = list(size = 10)),  
+  xaxis3 = list(tickfont = list(size = 10)),  
+  xaxis4 = list(tickfont = list(size = 10)),  
+  xaxis5 = list(tickfont = list(size = 10)),  
+  xaxis6 = list(tickfont = list(size = 10)),  
+  yaxis = list(tickfont = list(size = 10)),  
+  yaxis2 = list(tickfont = list(size = 10)),  
+  yaxis3 = list(tickfont = list(size = 10)),  
+  yaxis4 = list(tickfont = list(size = 10)),  
+  yaxis5 = list(tickfont = list(size = 10)),  
+  yaxis6 = list(tickfont = list(size = 10))  
+)
 
 fig
-
 saveWidget(fig, "Salle/Twitter/plots/heatmap_terminos.html", selfcontained = TRUE)
 
 
@@ -621,33 +675,15 @@ saveWidget(fig, "Salle/Twitter/plots/heatmap_terminos.html", selfcontained = TRU
 # library(dplyr)
 # 
 # # Unir los datos de los gráficos en un solo dataframe
-data_combined <- bind_rows(
-  mutate(data_dfm_top10_orden),
-  mutate(data_dfm_top10_pandemia),
-  mutate(data_dfm_top10_ambiente),
-  mutate(data_dfm_top10_justicia)
-)
-
-#openxlsx::write.xlsx(data_combined,"Salle/Twitter/Intermedias/data_heatmap.xlsx")
-
-
+# data_combined <- bind_rows(
+#   data_dfm_top10_orden,
+#   data_dfm_top10_pandemia,
+#  data_dfm_top10_ambiente,
+#   data_dfm_top10_genero,
+#   data_dfm_top10_otros
+# )
 # 
-# 
-# # Crear el gráfico con facet_wrap
-# plot_facet = ggplot(data_combined, aes(x = Anio, y = Termino, fill = Frecuencia)) +
-#   geom_tile(color = "white") +
-#   scale_fill_gradient(low = "white", high = "#ff7f00", name = "Frecuencia") +
-#   labs(
-#     title = "Frecuencia de términos más mencionados por categoría y año",
-#     x = "Año", y = "Términos"
-#   ) +
-#   facet_wrap(~Categoria, ncol = 2, scales = "free") +  # Divide en 4 gráficos con ejes independientes
-#   theme_minimal(base_size = 12) +
-#   theme(
-#     axis.title.x = element_blank(),
-#     strip.text = element_text(size = 12, face = "bold"),  # Título de cada faceta
-#     legend.position = "none"  # Leyenda en la parte inferior
-#   )
+# openxlsx::write.xlsx(data_combined,"Salle/Twitter/Intermedias/data_heatmap.xlsx")
 
 
 

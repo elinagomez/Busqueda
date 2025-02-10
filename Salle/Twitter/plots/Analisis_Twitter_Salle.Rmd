@@ -1,7 +1,7 @@
 ---
 title: "Análisis cuenta oficial Gustavo Salle - Twitter/X"
 author: "Elina Gómez"
-date: "2025-02-03"
+date: "2025-02-10"
 output: 
   html_document:
     toc: true
@@ -94,7 +94,7 @@ Por último se indaga sobre el peso de cada término para cada una de las cuatro
 
 
 
-<iframe src="heatmap_terminos.html" width="100%" height="700px" style="border:none;"></iframe>
+<iframe src="heatmap_terminos.html" width="100%" height="1200px" style="border:none;"></iframe>
 
 <br>
 
