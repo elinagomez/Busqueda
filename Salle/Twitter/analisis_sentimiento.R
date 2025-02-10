@@ -5,6 +5,7 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 library(plotly)
+library(htmlwidgets)
 
 
 salle_sent <- read_csv("Salle/Twitter/salle_sent.csv")
@@ -20,12 +21,16 @@ evo_sent <- salle_sent %>%
   mutate(Anio = as.factor(Anio))
 
 
+#openxlsx::write.xlsx(evo_sent,"Salle/Twitter/Intermedias/evo_sent.xlsx")
+
+
+
 grafico_sent <- ggplot(evo_sent, aes(x = Anio, y = proporcion, 
                                      color = sentimiento, 
                                      group = sentimiento,
                                      text = paste0("Sentimiento: ", sentimiento, "<br>",
                                                    "Año: ", Anio, "<br>",
-                                                   "Porcentaje: ", paste(proporcion))) +
+                                                   "Porcentaje: ", paste(proporcion),"%"))) +
   geom_line(size = 1) + 
   geom_point(size = 2) +  
   labs(title = "Evolución de posteos por sentimiento y año") +
@@ -45,6 +50,7 @@ grafico_interactivo_sent <- ggplotly(grafico_sent, tooltip = "text") %>%
 
 grafico_interactivo_sent
 
+saveWidget(grafico_interactivo_sent, "Salle/Twitter/plots/evo_sent.html", selfcontained = TRUE)
 
 
 
