@@ -31,8 +31,11 @@ grafico_sent <- ggplot(evo_sent, aes(x = Anio, y = proporcion,
                                      text = paste0("Sentimiento: ", sentimiento, "<br>",
                                                    "Año: ", Anio, "<br>",
                                                    "Porcentaje: ", paste(proporcion),"%"))) +
-  geom_line(size = 1) + 
-  geom_point(size = 2) +  
+  geom_line(size = 0.8) + 
+  geom_point(size = 1.7) +  
+  scale_color_manual(values = c("POS" = "#77DD77",  
+                                "NEU" = "#FFEB99",  
+                                "NEG" = "#FF9999")) +
   labs(title = "Evolución de posteos por sentimiento y año") +
   theme_minimal(base_size = 14) +  
   theme(legend.position = "bottom",  

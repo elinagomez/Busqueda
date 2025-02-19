@@ -46,7 +46,7 @@ grafico_tipo <- ggplot(evo_tipo, aes(x = Anio, y = conteo_posteos,
                                      text = paste0("Tipo: ", tipo_posteo, "<br>",
                                                    "Año: ", Anio, "<br>",
                                                    "Cantidad: ", conteo_posteos))) +
-  geom_line(size = 1) + 
+  geom_line(size = 0.8) + 
   geom_point(size = 2) +  
   scale_color_manual(values = c("Comentario" = "#e31a1c", "Posteo original" = "#1f78b4")) +  
   labs(title = "Evolución de posteos por tipo y año",
@@ -152,8 +152,8 @@ grafico <- ggplot(conteos_categorias, aes(x = Anio, y = conteo_posteos, color = 
                                           text = paste0("Categoría: ", categoria, "<br>",
                                                         "Año: ", Anio, "<br>",
                                                         "Posteos: ", conteo_posteos))) +
-  geom_line(size = 1) + 
-  geom_point(size = 2) +  # Agrega puntos para resaltar valores
+  geom_line(size = 0.6) + 
+  geom_point(size = 1.5) +  # Agrega puntos para resaltar valores
   scale_color_manual(values = colores_categoria) + # Aplicar colores definidos
   labs(title = "Evolución de posteos por categoría y año",
        x = "Año",
@@ -210,8 +210,8 @@ grafico_terminos <- ggplot(conteos_tidy, aes(x = Anio, y = conteo, color = categ
                                              text = paste0("Categoría: ", categoria, "<br>",
                                                            "Año: ", Anio, "<br>",
                                                            "Términos mencionados: ", conteo))) +
-  geom_line(size = 1) + 
-  geom_point(size = 2) +  
+  geom_line(size = 0.6) + 
+  geom_point(size = 1.5) +  
   scale_color_manual(values = colores_categoria) +  
   labs(title = "Evolución de menciones de términos por categoría y año",
        x = "Año",
@@ -726,8 +726,8 @@ grafico <- ggplot(interacciones_por_periodo, aes(x = periodo, y = conteo,
                                                  text = paste0("Cuenta: ", menciones, "<br>",
                                                                "Periodo: ", format(periodo, "%b %Y"), "<br>",
                                                                "Interacciones: ", conteo))) +
-  geom_line(size = 1) + 
-  geom_point(size = 2) +  
+  geom_line(size = 0.6) + 
+  geom_point(size = 1.5) +  
   #scale_color_manual(values = colores_cuentas) +  
   labs(title = "Evolución de interacción con 10 cuentas más mencionadas",
        x = "Periodo (4 meses)",
@@ -821,8 +821,8 @@ grafico <- ggplot(conteos_categorias, aes(x = Anio, y = conteo_posteos, color = 
                                           text = paste0("Categoría: ", categoria, "<br>",
                                                         "Año: ", Anio, "<br>",
                                                         "Posteos: ", conteo_posteos))) +
-  geom_line(size = 1) + 
-  geom_point(size = 2) +  # Agrega puntos para resaltar valores
+  geom_line(size = 0.6) + 
+  geom_point(size = 1.5) +  # Agrega puntos para resaltar valores
   scale_color_manual(values = colores_categoria) + # Aplicar colores definidos
   labs(title = "Evolución de posteos sobre parlamento por año",
        x = "Año",
@@ -877,8 +877,8 @@ grafico_terminos <- ggplot(conteos_tidy, aes(x = Anio, y = conteo, color = categ
                                              text = paste0("Categoría: ", categoria, "<br>",
                                                            "Año: ", Anio, "<br>",
                                                            "Términos mencionados: ", conteo))) +
-  geom_line(size = 1) + 
-  geom_point(size = 2) +  
+  geom_line(size = 0.6) + 
+  geom_point(size = 1.5) +  
   scale_color_manual(values = colores_categoria) +  
   labs(title = "Evolución de menciones de términos sobre parlamento por año",
        x = "Año",
