@@ -41,6 +41,7 @@ base <- base %>%
 
 El trabajo se centra en un análisis retrospectivo de los posteos de la cuenta oficial de Gustavo Salle (@sallelorier) en la red X (ex-Twitter), en el período 2015 - 2025. En total se contablizan 46633 posteos en el período de diez años, incluyendo posteos originales (21659) y comentarios a otros posteos (24974). En la siguiente tabla se visualiza el total de posteos por año, considerando ambos tipos en conjunto. 
 
+
 <br>
 
 ```{r pressure, echo=FALSE, message=FALSE, warning=FALSE}
